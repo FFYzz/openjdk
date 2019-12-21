@@ -27,6 +27,8 @@ package java.lang.reflect;
 
 
 /**
+ * 泛型类型
+ * <p>
  * ParameterizedType represents a parameterized type such as
  * Collection&lt;String&gt;.
  *
@@ -46,6 +48,8 @@ package java.lang.reflect;
  */
 public interface ParameterizedType extends Type {
     /**
+     * 返回当前参数的真实类型(泛型的类型) 比如 HashMap<Integer, String>，则会返回 Integer 和 String 类型组成的数组。
+     * <p>
      * Returns an array of {@code Type} objects representing the actual type
      * arguments to this type.
      *
@@ -54,27 +58,29 @@ public interface ParameterizedType extends Type {
      * a parameterized type.
      *
      * @return an array of {@code Type} objects representing the actual type
-     *     arguments to this type
-     * @throws TypeNotPresentException if any of the
-     *     actual type arguments refers to a non-existent type declaration
+     * arguments to this type
+     * @throws TypeNotPresentException             if any of the
+     *                                             actual type arguments refers to a non-existent type declaration
      * @throws MalformedParameterizedTypeException if any of the
-     *     actual type parameters refer to a parameterized type that cannot
-     *     be instantiated for any reason
+     *                                             actual type parameters refer to a parameterized type that cannot
+     *                                             be instantiated for any reason
      * @since 1.5
      */
     Type[] getActualTypeArguments();
 
     /**
+     * 返回当前参数的类型
      * Returns the {@code Type} object representing the class or interface
      * that declared this type.
      *
      * @return the {@code Type} object representing the class or interface
-     *     that declared this type
+     * that declared this type
      * @since 1.5
      */
     Type getRawType();
 
     /**
+     * 一般是内部类返回外部类类型，否则返回 null
      * Returns a {@code Type} object representing the type that this type
      * is a member of.  For example, if this type is {@code O<T>.I<S>},
      * return a representation of {@code O<T>}.
@@ -82,13 +88,13 @@ public interface ParameterizedType extends Type {
      * <p>If this type is a top-level type, {@code null} is returned.
      *
      * @return a {@code Type} object representing the type that
-     *     this type is a member of. If this type is a top-level type,
-     *     {@code null} is returned
-     * @throws TypeNotPresentException if the owner type
-     *     refers to a non-existent type declaration
+     * this type is a member of. If this type is a top-level type,
+     * {@code null} is returned
+     * @throws TypeNotPresentException             if the owner type
+     *                                             refers to a non-existent type declaration
      * @throws MalformedParameterizedTypeException if the owner type
-     *     refers to a parameterized type that cannot be instantiated
-     *     for any reason
+     *                                             refers to a parameterized type that cannot be instantiated
+     *                                             for any reason
      * @since 1.5
      */
     Type getOwnerType();
