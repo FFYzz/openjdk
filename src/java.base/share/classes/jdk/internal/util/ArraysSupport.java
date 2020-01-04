@@ -74,7 +74,8 @@ public class ArraysSupport {
         return Integer.numberOfTrailingZeros(scale);
     }
 
-    private ArraysSupport() {}
+    private ArraysSupport() {
+    }
 
     /**
      * Find the relative index of the first mismatching pair of elements in two
@@ -89,19 +90,19 @@ public class ArraysSupport {
      * given log<sub>2</sub> size the array elements.  More specifically, an
      * offset modulus the size need not be zero.
      *
-     * @param a the first array to be tested for mismatch, or {@code null} for
-     * direct memory access
-     * @param aOffset the relative offset, in bytes, from the base address of
-     * the first array to test from, otherwise if the first array is
-     * {@code null}, an absolute address pointing to the first element to test.
-     * @param b the second array to be tested for mismatch, or {@code null} for
-     * direct memory access
-     * @param bOffset the relative offset, in bytes, from the base address of
-     * the second array to test from, otherwise if the second array is
-     * {@code null}, an absolute address pointing to the first element to test.
-     * @param length the number of array elements to test
+     * @param a                   the first array to be tested for mismatch, or {@code null} for
+     *                            direct memory access
+     * @param aOffset             the relative offset, in bytes, from the base address of
+     *                            the first array to test from, otherwise if the first array is
+     *                            {@code null}, an absolute address pointing to the first element to test.
+     * @param b                   the second array to be tested for mismatch, or {@code null} for
+     *                            direct memory access
+     * @param bOffset             the relative offset, in bytes, from the base address of
+     *                            the second array to test from, otherwise if the second array is
+     *                            {@code null}, an absolute address pointing to the first element to test.
+     * @param length              the number of array elements to test
      * @param log2ArrayIndexScale log<sub>2</sub> of the array index scale, that
-     * corresponds to the size, in bytes, of an array element.
+     *                            corresponds to the size, in bytes, of an array element.
      * @return if a mismatch is found a relative index, between 0 (inclusive)
      * and {@code length} (exclusive), of the first mismatching pair of elements
      * in the two arrays.  Otherwise, if a mismatch is not found the bitwise
@@ -154,8 +155,7 @@ public class ArraysSupport {
                 tail -= wordTail;
             }
             return ~tail;
-        }
-        else {
+        } else {
             return ~tail;
         }
     }
@@ -218,8 +218,8 @@ public class ArraysSupport {
      * <p>This method does not perform bounds checks. It is the responsibility
      * of the caller to perform such bounds checks before calling this method.
      *
-     * @param a the first array to be tested for a mismatch
-     * @param b the second array to be tested for a mismatch
+     * @param a      the first array to be tested for a mismatch
+     * @param b      the second array to be tested for a mismatch
      * @param length the number of bytes from each array to check
      * @return the index of a mismatch between the two arrays, otherwise -1 if
      * no mismatch.  The index will be within the range of (inclusive) 0 to
@@ -261,13 +261,13 @@ public class ArraysSupport {
      * <p>This method does not perform bounds checks. It is the responsibility
      * of the caller to perform such bounds checks before calling this method.
      *
-     * @param a the first array to be tested for a mismatch
+     * @param a          the first array to be tested for a mismatch
      * @param aFromIndex the index of the first element (inclusive) in the first
-     * array to be compared
-     * @param b the second array to be tested for a mismatch
+     *                   array to be compared
+     * @param b          the second array to be tested for a mismatch
      * @param bFromIndex the index of the first element (inclusive) in the
-     * second array to be compared
-     * @param length the number of bytes from each array to check
+     *                   second array to be compared
+     * @param length     the number of bytes from each array to check
      * @return the relative index of a mismatch between the two arrays,
      * otherwise -1 if no mismatch.  The index will be within the range of
      * (inclusive) 0 to (exclusive) the smaller of the two array bounds.
@@ -593,14 +593,14 @@ public class ArraysSupport {
      * If the sum does not overflow an int, then {@code Integer.MAX_VALUE} is
      * returned.  Otherwise, {@code OutOfMemoryError} is thrown.
      *
-     * @param oldLength   current length of the array (must be non negative)
-     * @param minGrowth   minimum required growth of the array length (must be
-     *                    positive)
-     * @param prefGrowth  preferred growth of the array length (ignored, if less
-     *                    then {@code minGrowth})
+     * @param oldLength  current length of the array (must be non negative)
+     * @param minGrowth  minimum required growth of the array length (must be
+     *                   positive)
+     * @param prefGrowth preferred growth of the array length (ignored, if less
+     *                   then {@code minGrowth})
      * @return the new length of the array
      * @throws OutOfMemoryError if increasing {@code oldLength} by
-     *                    {@code minGrowth} overflows.
+     *                          {@code minGrowth} overflows.
      */
     public static int newLength(int oldLength, int minGrowth, int prefGrowth) {
         // assert oldLength >= 0
@@ -613,14 +613,25 @@ public class ArraysSupport {
         return hugeLength(oldLength, minGrowth);
     }
 
+    /**
+     * 申请大长度
+     *
+     * @param oldLength
+     * @param minGrowth 一般是 1
+     * @return
+     */
     private static int hugeLength(int oldLength, int minGrowth) {
         int minLength = oldLength + minGrowth;
+        // 如果新长度超过了 Integer.MAX_VALUE
+        // 抛出 OOM 异常
         if (minLength < 0) { // overflow
             throw new OutOfMemoryError("Required array length too large");
         }
+        // 如果还满足 Integer.MAX_VALUE - 8，则直接返回
         if (minLength <= MAX_ARRAY_LENGTH) {
             return MAX_ARRAY_LENGTH;
         }
+        // 返回最大值
         return Integer.MAX_VALUE;
     }
 }
