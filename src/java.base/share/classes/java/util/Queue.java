@@ -131,12 +131,33 @@ package java.util;
  * <a href="{@docRoot}/java.base/java/util/package-summary.html#CollectionsFramework">
  * Java Collections Framework</a>.
  *
- * @since 1.5
  * @author Doug Lea
  * @param <E> the type of elements held in this queue
+ * @since 1.5
+ */
+
+/**
+ * 继承自 Collection
+ *
+ * 插入元素的方法：
+ * add() 抛异常
+ * offer() 返回false
+ *
+ * 删除元素的方法：
+ * remove() 抛异常
+ * pop() 返回 null
+ *
+ * 获取队头元素的方法
+ * element() 抛异常
+ * peek() 返回 null
+ *
  */
 public interface Queue<E> extends Collection<E> {
     /**
+     * 向队列中加入元素
+     * 如果超出了数组的容量则抛出异常
+     * 未超出容量则存入成功
+     * <p>
      * Inserts the specified element into this queue if it is possible to do so
      * immediately without violating capacity restrictions, returning
      * {@code true} upon success and throwing an {@code IllegalStateException}
@@ -144,18 +165,21 @@ public interface Queue<E> extends Collection<E> {
      *
      * @param e the element to add
      * @return {@code true} (as specified by {@link Collection#add})
-     * @throws IllegalStateException if the element cannot be added at this
-     *         time due to capacity restrictions
-     * @throws ClassCastException if the class of the specified element
-     *         prevents it from being added to this queue
-     * @throws NullPointerException if the specified element is null and
-     *         this queue does not permit null elements
+     * @throws IllegalStateException    if the element cannot be added at this
+     *                                  time due to capacity restrictions
+     * @throws ClassCastException       if the class of the specified element
+     *                                  prevents it from being added to this queue
+     * @throws NullPointerException     if the specified element is null and
+     *                                  this queue does not permit null elements
      * @throws IllegalArgumentException if some property of this element
-     *         prevents it from being added to this queue
+     *                                  prevents it from being added to this queue
      */
     boolean add(E e);
 
     /**
+     * 向队列中加入元素
+     * 超过容量返回 false
+     * <p>
      * Inserts the specified element into this queue if it is possible to do
      * so immediately without violating capacity restrictions.
      * When using a capacity-restricted queue, this method is generally
@@ -164,17 +188,20 @@ public interface Queue<E> extends Collection<E> {
      *
      * @param e the element to add
      * @return {@code true} if the element was added to this queue, else
-     *         {@code false}
-     * @throws ClassCastException if the class of the specified element
-     *         prevents it from being added to this queue
-     * @throws NullPointerException if the specified element is null and
-     *         this queue does not permit null elements
+     * {@code false}
+     * @throws ClassCastException       if the class of the specified element
+     *                                  prevents it from being added to this queue
+     * @throws NullPointerException     if the specified element is null and
+     *                                  this queue does not permit null elements
      * @throws IllegalArgumentException if some property of this element
-     *         prevents it from being added to this queue
+     *                                  prevents it from being added to this queue
      */
     boolean offer(E e);
 
     /**
+     * 从队头中移除一个元素
+     * 与 poll() 方法不同的一点就是如果队列为空，该方法抛出一个异常
+     * <p>
      * Retrieves and removes the head of this queue.  This method differs
      * from {@link #poll() poll()} only in that it throws an exception if
      * this queue is empty.
@@ -185,6 +212,9 @@ public interface Queue<E> extends Collection<E> {
     E remove();
 
     /**
+     * 从队头中移除一个元素
+     * 队列为空返回 null
+     * <p>
      * Retrieves and removes the head of this queue,
      * or returns {@code null} if this queue is empty.
      *
@@ -193,6 +223,9 @@ public interface Queue<E> extends Collection<E> {
     E poll();
 
     /**
+     * 获取队头元素
+     * 如果队列为空，则抛出异常
+     * <p>
      * Retrieves, but does not remove, the head of this queue.  This method
      * differs from {@link #peek peek} only in that it throws an exception
      * if this queue is empty.
@@ -203,6 +236,9 @@ public interface Queue<E> extends Collection<E> {
     E element();
 
     /**
+     * 获取队头元素
+     * 如果队列为空，则返回 null
+     * <p>
      * Retrieves, but does not remove, the head of this queue,
      * or returns {@code null} if this queue is empty.
      *
