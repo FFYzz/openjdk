@@ -65,8 +65,8 @@ import java.io.Serializable;
  * compareTo} because instances are expected to be mutated, and so are
  * not useful as collection keys.
  *
- * @since 1.8
  * @author Doug Lea
+ * @since 1.8
  */
 public class LongAdder extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
@@ -79,16 +79,37 @@ public class LongAdder extends Striped64 implements Serializable {
 
     /**
      * Adds the given value.
+     * <p>
+     * 将给定值添加到 value 上
      *
      * @param x the value to add
      */
     public void add(long x) {
-        Cell[] cs; long b, v; int m; Cell c;
+        // cs 是 Striped64 中的 cells 属性
+        // b 是 Striped64 中的 base 属性
+        // v 是记录当前线程 hash 到的 Cell 中存储的值
+        // m 是 cells 的长度减 1，用于 hash 时计算位置
+        // c 是当前线程 hash 到的 Cell
+        Cell[] cs;
+        long b, v;
+        int m;
+        Cell c;
+        // 条件1：cells 不为空，说明出现过竞争，cells 已经创建
+        // 条件2：cas 操作 base 失败，说明其它线程先一步修改了 base，正在出现竞争
         if ((cs = cells) != null || !casBase(b = base, b + x)) {
+            // true 表示当前竞争还不激烈
+            // false 表示竞争激烈，多个线程 hash 到同一个 Cell，可能要扩容
             boolean uncontended = true;
+            // 条件1：cells 为空，说明正在出现竞争，上面是从条件2过来的
+            // 条件2：应该不会出现
+            // 条件3：当前线程所在的 Cell 为空，说明当前线程还没有更新过 Cell，应初始化一个 Cell
+            // 条件4：更新当前线程所在的 Cell 失败，说明现在s竞争很激烈，多个线程hash到了同一个 Cell，应扩容
             if (cs == null || (m = cs.length - 1) < 0 ||
-                (c = cs[getProbe() & m]) == null ||
-                !(uncontended = c.cas(v = c.value, v + x)))
+                    // getProbe() 方法返回的是线程中的 threadLocalRandomProbe 字段
+                    // 它是通过随机数生成的一个值，对于一个确定的线程这个值是固定的
+                    // 除非刻意修改它
+                    (c = cs[getProbe() & m]) == null ||
+                    !(uncontended = c.cas(v = c.value, v + x)))
                 longAccumulate(x, null, uncontended);
         }
     }
@@ -113,6 +134,10 @@ public class LongAdder extends Striped64 implements Serializable {
      * updates returns an accurate result, but concurrent updates that
      * occur while the sum is being calculated might not be
      * incorporated.
+     * <p>
+     * 获取和，将所有 段 和 base 中的值都相加
+     * 当在计算 sum 的时候，有其他线程修改了已经计算过的 cell 的 value
+     * 那么 sum 的值不是最新的。
      *
      * @return the sum
      */
@@ -168,6 +193,7 @@ public class LongAdder extends Striped64 implements Serializable {
 
     /**
      * Returns the String representation of the {@link #sum}.
+     *
      * @return the String representation of the {@link #sum}
      */
     public String toString() {
@@ -188,7 +214,7 @@ public class LongAdder extends Striped64 implements Serializable {
      * primitive conversion.
      */
     public int intValue() {
-        return (int)sum();
+        return (int) sum();
     }
 
     /**
@@ -196,7 +222,7 @@ public class LongAdder extends Striped64 implements Serializable {
      * after a widening primitive conversion.
      */
     public float floatValue() {
-        return (float)sum();
+        return (float) sum();
     }
 
     /**
@@ -204,12 +230,13 @@ public class LongAdder extends Striped64 implements Serializable {
      * primitive conversion.
      */
     public double doubleValue() {
-        return (double)sum();
+        return (double) sum();
     }
 
     /**
      * Serialization proxy, used to avoid reference to the non-public
      * Striped64 superclass in serialized forms.
+     *
      * @serial include
      */
     private static class SerializationProxy implements Serializable {
@@ -217,6 +244,7 @@ public class LongAdder extends Striped64 implements Serializable {
 
         /**
          * The current value returned by sum().
+         *
          * @serial
          */
         private final long value;
@@ -257,7 +285,7 @@ public class LongAdder extends Striped64 implements Serializable {
      * @throws java.io.InvalidObjectException always
      */
     private void readObject(java.io.ObjectInputStream s)
-        throws java.io.InvalidObjectException {
+            throws java.io.InvalidObjectException {
         throw new java.io.InvalidObjectException("Proxy required");
     }
 
