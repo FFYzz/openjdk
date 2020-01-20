@@ -143,7 +143,7 @@ inline T Atomic::PlatformCmpxchg<1>::operator()(T exchange_value,
     lock cmpxchg byte ptr [edx], cl
   }
 }
-
+// 中间的数字表示 字节数
 template<>
 template<typename T>
 inline T Atomic::PlatformCmpxchg<4>::operator()(T exchange_value,
