@@ -50,6 +50,12 @@ import java.lang.invoke.VarHandle;
  * @author Doug Lea
  * @since 1.5
  */
+
+/**
+ * 委托给了 VarHandle 来实现
+ *
+ * @param <V>
+ */
 public class AtomicStampedReference<V> {
 
     /**
@@ -71,6 +77,9 @@ public class AtomicStampedReference<V> {
         }
     }
 
+    /**
+     * Pair 实例
+     */
     private volatile Pair<V> pair;
 
     /**

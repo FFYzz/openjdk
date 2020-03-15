@@ -47,14 +47,24 @@ import java.util.function.UnaryOperator;
  * An array of object references in which elements may be updated
  * atomically.  See the {@link VarHandle} specification for
  * descriptions of the properties of atomic accesses.
- * @since 1.5
+ *
  * @author Doug Lea
  * @param <E> The base class of elements held in this array
+ * @since 1.5
+ */
+
+/**
+ * 委托给了 VarHandle 实例
+ *
+ * @param <E>
  */
 public class AtomicReferenceArray<E> implements java.io.Serializable {
     private static final long serialVersionUID = -6209656149925076980L;
+    /**
+     * VarHandle 实例
+     */
     private static final VarHandle AA
-        = MethodHandles.arrayElementVarHandle(Object[].class);
+            = MethodHandles.arrayElementVarHandle(Object[].class);
     private final Object[] array; // must have exact type Object[]
 
     /**
@@ -97,14 +107,14 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      */
     @SuppressWarnings("unchecked")
     public final E get(int i) {
-        return (E)AA.getVolatile(array, i);
+        return (E) AA.getVolatile(array, i);
     }
 
     /**
      * Sets the element at index {@code i} to {@code newValue},
      * with memory effects as specified by {@link VarHandle#setVolatile}.
      *
-     * @param i the index
+     * @param i        the index
      * @param newValue the new value
      */
     public final void set(int i, E newValue) {
@@ -115,7 +125,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * Sets the element at index {@code i} to {@code newValue},
      * with memory effects as specified by {@link VarHandle#setRelease}.
      *
-     * @param i the index
+     * @param i        the index
      * @param newValue the new value
      * @since 1.6
      */
@@ -128,13 +138,13 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * newValue} and returns the old value,
      * with memory effects as specified by {@link VarHandle#getAndSet}.
      *
-     * @param i the index
+     * @param i        the index
      * @param newValue the new value
      * @return the previous value
      */
     @SuppressWarnings("unchecked")
     public final E getAndSet(int i, E newValue) {
-        return (E)AA.getAndSet(array, i, newValue);
+        return (E) AA.getAndSet(array, i, newValue);
     }
 
     /**
@@ -142,9 +152,9 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * if the element's current value {@code == expectedValue},
      * with memory effects as specified by {@link VarHandle#compareAndSet}.
      *
-     * @param i the index
+     * @param i             the index
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
@@ -157,19 +167,18 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * {@code newValue} if the element's current value {@code == expectedValue},
      * with memory effects as specified by {@link VarHandle#weakCompareAndSetPlain}.
      *
+     * @param i             the index
+     * @param expectedValue the expected value
+     * @param newValue      the new value
+     * @return {@code true} if successful
+     * @see #weakCompareAndSetPlain
      * @deprecated This method has plain memory effects but the method
      * name implies volatile memory effects (see methods such as
      * {@link #compareAndExchange} and {@link #compareAndSet}).  To avoid
      * confusion over plain or volatile memory effects it is recommended that
      * the method {@link #weakCompareAndSetPlain} be used instead.
-     *
-     * @param i the index
-     * @param expectedValue the expected value
-     * @param newValue the new value
-     * @return {@code true} if successful
-     * @see #weakCompareAndSetPlain
      */
-    @Deprecated(since="9")
+    @Deprecated(since = "9")
     public final boolean weakCompareAndSet(int i, E expectedValue, E newValue) {
         return AA.weakCompareAndSetPlain(array, i, expectedValue, newValue);
     }
@@ -179,9 +188,9 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * {@code newValue} if the element's current value {@code == expectedValue},
      * with memory effects as specified by {@link VarHandle#weakCompareAndSetPlain}.
      *
-     * @param i the index
+     * @param i             the index
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful
      * @since 9
      */
@@ -197,14 +206,14 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * it may be re-applied when attempted updates fail due to
      * contention among threads.
      *
-     * @param i the index
+     * @param i              the index
      * @param updateFunction a side-effect-free function
      * @return the previous value
      * @since 1.8
      */
     public final E getAndUpdate(int i, UnaryOperator<E> updateFunction) {
         E prev = get(i), next = null;
-        for (boolean haveNext = false;;) {
+        for (boolean haveNext = false; ; ) {
             if (!haveNext)
                 next = updateFunction.apply(prev);
             if (weakCompareAndSetVolatile(i, prev, next))
@@ -221,14 +230,14 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * may be re-applied when attempted updates fail due to contention
      * among threads.
      *
-     * @param i the index
+     * @param i              the index
      * @param updateFunction a side-effect-free function
      * @return the updated value
      * @since 1.8
      */
     public final E updateAndGet(int i, UnaryOperator<E> updateFunction) {
         E prev = get(i), next = null;
-        for (boolean haveNext = false;;) {
+        for (boolean haveNext = false; ; ) {
             if (!haveNext)
                 next = updateFunction.apply(prev);
             if (weakCompareAndSetVolatile(i, prev, next))
@@ -248,8 +257,8 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * as its first argument, and the given update as the second
      * argument.
      *
-     * @param i the index
-     * @param x the update value
+     * @param i                   the index
+     * @param x                   the update value
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the previous value
      * @since 1.8
@@ -257,7 +266,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     public final E getAndAccumulate(int i, E x,
                                     BinaryOperator<E> accumulatorFunction) {
         E prev = get(i), next = null;
-        for (boolean haveNext = false;;) {
+        for (boolean haveNext = false; ; ) {
             if (!haveNext)
                 next = accumulatorFunction.apply(prev, x);
             if (weakCompareAndSetVolatile(i, prev, next))
@@ -277,8 +286,8 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * as its first argument, and the given update as the second
      * argument.
      *
-     * @param i the index
-     * @param x the update value
+     * @param i                   the index
+     * @param x                   the update value
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the updated value
      * @since 1.8
@@ -286,7 +295,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     public final E accumulateAndGet(int i, E x,
                                     BinaryOperator<E> accumulatorFunction) {
         E prev = get(i), next = null;
-        for (boolean haveNext = false;;) {
+        for (boolean haveNext = false; ; ) {
             if (!haveNext)
                 next = accumulatorFunction.apply(prev, x);
             if (weakCompareAndSetVolatile(i, prev, next))
@@ -297,6 +306,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
 
     /**
      * Returns the String representation of the current values of array.
+     *
      * @return the String representation of the current values of array
      */
     public String toString() {
@@ -316,29 +326,31 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
 
     /**
      * Reconstitutes the instance from a stream (that is, deserializes it).
+     *
      * @param s the stream
      * @throws ClassNotFoundException if the class of a serialized object
-     *         could not be found
-     * @throws java.io.IOException if an I/O error occurs
+     *                                could not be found
+     * @throws java.io.IOException    if an I/O error occurs
      */
     private void readObject(java.io.ObjectInputStream s)
-        throws java.io.IOException, ClassNotFoundException {
+            throws java.io.IOException, ClassNotFoundException {
         // Note: This must be changed if any additional fields are defined
         Object a = s.readFields().get("array", null);
         if (a == null || !a.getClass().isArray())
             throw new java.io.InvalidObjectException("Not array type");
         if (a.getClass() != Object[].class)
-            a = Arrays.copyOf((Object[])a, Array.getLength(a), Object[].class);
+            a = Arrays.copyOf((Object[]) a, Array.getLength(a), Object[].class);
         Field arrayField = java.security.AccessController.doPrivileged(
-            (java.security.PrivilegedAction<Field>) () -> {
-                try {
-                    Field f = AtomicReferenceArray.class
-                        .getDeclaredField("array");
-                    f.setAccessible(true);
-                    return f;
-                } catch (ReflectiveOperationException e) {
-                    throw new Error(e);
-                }});
+                (java.security.PrivilegedAction<Field>) () -> {
+                    try {
+                        Field f = AtomicReferenceArray.class
+                                .getDeclaredField("array");
+                        f.setAccessible(true);
+                        return f;
+                    } catch (ReflectiveOperationException e) {
+                        throw new Error(e);
+                    }
+                });
         try {
             arrayField.set(this, a);
         } catch (IllegalAccessException e) {
@@ -358,7 +370,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @since 9
      */
     public final E getPlain(int i) {
-        return (E)AA.get(array, i);
+        return (E) AA.get(array, i);
     }
 
     /**
@@ -366,7 +378,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * with memory semantics of setting as if the variable was
      * declared non-{@code volatile} and non-{@code final}.
      *
-     * @param i the index
+     * @param i        the index
      * @param newValue the new value
      * @since 9
      */
@@ -383,14 +395,14 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @since 9
      */
     public final E getOpaque(int i) {
-        return (E)AA.getOpaque(array, i);
+        return (E) AA.getOpaque(array, i);
     }
 
     /**
      * Sets the element at index {@code i} to {@code newValue},
      * with memory effects as specified by {@link VarHandle#setOpaque}.
      *
-     * @param i the index
+     * @param i        the index
      * @param newValue the new value
      * @since 9
      */
@@ -407,14 +419,14 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * @since 9
      */
     public final E getAcquire(int i) {
-        return (E)AA.getAcquire(array, i);
+        return (E) AA.getAcquire(array, i);
     }
 
     /**
      * Sets the element at index {@code i} to {@code newValue},
      * with memory effects as specified by {@link VarHandle#setRelease}.
      *
-     * @param i the index
+     * @param i        the index
      * @param newValue the new value
      * @since 9
      */
@@ -429,15 +441,15 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * with memory effects as specified by
      * {@link VarHandle#compareAndExchange}.
      *
-     * @param i the index
+     * @param i             the index
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return the witness value, which will be the same as the
      * expected value if successful
      * @since 9
      */
     public final E compareAndExchange(int i, E expectedValue, E newValue) {
-        return (E)AA.compareAndExchange(array, i, expectedValue, newValue);
+        return (E) AA.compareAndExchange(array, i, expectedValue, newValue);
     }
 
     /**
@@ -447,15 +459,15 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeAcquire}.
      *
-     * @param i the index
+     * @param i             the index
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return the witness value, which will be the same as the
      * expected value if successful
      * @since 9
      */
     public final E compareAndExchangeAcquire(int i, E expectedValue, E newValue) {
-        return (E)AA.compareAndExchangeAcquire(array, i, expectedValue, newValue);
+        return (E) AA.compareAndExchangeAcquire(array, i, expectedValue, newValue);
     }
 
     /**
@@ -465,15 +477,15 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeRelease}.
      *
-     * @param i the index
+     * @param i             the index
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return the witness value, which will be the same as the
      * expected value if successful
      * @since 9
      */
     public final E compareAndExchangeRelease(int i, E expectedValue, E newValue) {
-        return (E)AA.compareAndExchangeRelease(array, i, expectedValue, newValue);
+        return (E) AA.compareAndExchangeRelease(array, i, expectedValue, newValue);
     }
 
     /**
@@ -482,9 +494,9 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * with memory effects as specified by
      * {@link VarHandle#weakCompareAndSet}.
      *
-     * @param i the index
+     * @param i             the index
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful
      * @since 9
      */
@@ -498,9 +510,9 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * with memory effects as specified by
      * {@link VarHandle#weakCompareAndSetAcquire}.
      *
-     * @param i the index
+     * @param i             the index
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful
      * @since 9
      */
@@ -514,9 +526,9 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * with memory effects as specified by
      * {@link VarHandle#weakCompareAndSetRelease}.
      *
-     * @param i the index
+     * @param i             the index
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful
      * @since 9
      */

@@ -48,11 +48,21 @@ import java.lang.invoke.VarHandle;
  * @since 1.5
  * @author Doug Lea
  */
+
+/**
+ * 基本上把所有的方法委托给了 VarHandle 来处理。
+ * 所以 AtomicBoolean 的源码的重点也在分析 VarHandle 类。
+ */
 public class AtomicBoolean implements java.io.Serializable {
     private static final long serialVersionUID = 4654671469794556979L;
+    /**
+     * 持有一个 VarHandle 对象
+     */
     private static final VarHandle VALUE;
     static {
         try {
+            // 获取一个 MethodHandles.Lookup 内部类的实例
+            // Lookup 实例一般用于保存方法句柄
             MethodHandles.Lookup l = MethodHandles.lookup();
             VALUE = l.findVarHandle(AtomicBoolean.class, "value", int.class);
         } catch (ReflectiveOperationException e) {
@@ -127,6 +137,8 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
+     * 重点： Possibly ，表示不一定是原子修改
+     *
      * Possibly atomically sets the value to {@code newValue}
      * if the current value {@code == expectedValue},
      * with memory effects as specified by {@link VarHandle#weakCompareAndSetPlain}.

@@ -47,10 +47,19 @@ import java.util.function.IntUnaryOperator;
  * @since 1.5
  * @author Doug Lea
  */
+/**
+ * 基本上方法的实现都委托给了 VarHandle，所以实现原理还是得看 VarHandle 的实现。
+ */
 public class AtomicIntegerArray implements java.io.Serializable {
     private static final long serialVersionUID = 2862133569453604235L;
+    /**
+     * 获取 VarHandle 实例
+     */
     private static final VarHandle AA
         = MethodHandles.arrayElementVarHandle(int[].class);
+    /**
+     * final 修饰
+     */
     private final int[] array;
 
     /**

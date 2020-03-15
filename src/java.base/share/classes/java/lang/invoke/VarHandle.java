@@ -25,37 +25,40 @@
 
 package java.lang.invoke;
 
-import java.lang.constant.ClassDesc;
-import java.lang.constant.Constable;
-import java.lang.constant.ConstantDesc;
-import java.lang.constant.ConstantDescs;
-import java.lang.constant.DirectMethodHandleDesc;
-import java.lang.constant.DynamicConstantDesc;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
 import jdk.internal.HotSpotIntrinsicCandidate;
 import jdk.internal.util.Preconditions;
 import jdk.internal.vm.annotation.ForceInline;
 import jdk.internal.vm.annotation.Stable;
 
+import java.lang.constant.ClassDesc;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 import static java.lang.invoke.MethodHandleStatics.UNSAFE;
 
 /**
+ * VarHandle 是一个变量的动态强类型引用，或者是一组参数化定义的变量族，包括静态字段，
+ * 非静态字段，数组元素或者堆外数据结构的组成部分。
+ * <p>
  * A VarHandle is a dynamically strongly typed reference to a variable, or to a
  * parametrically-defined family of variables, including static fields,
  * non-static fields, array elements, or components of an off-heap data
- * structure.  Access to such variables is supported under various
+ * structure.
+ * <p>
+ * 有多重不同的访问 VarHandle 变量的模式，包括 plain read/write、volatile
+ * read/write 和 compare-and-set 访问，
+ * <p>
+ * Access to such variables is supported under various
  * <em>access modes</em>, including plain read/write access, volatile
  * read/write access, and compare-and-set.
- *
- * <p>VarHandles are immutable and have no visible state.  VarHandles cannot be
+ * <p>
+ * VarHandles 是不可变的并且没有可见的状态。VarHandles 不能被用户继承。
+ * <p>
+ * VarHandles are immutable and have no visible state.  VarHandles cannot be
  * subclassed by the user.
+ *
+ * 一个 VarHandle 对象有一个 varType() 返回应用变量的类型 T。
  *
  * <p>A VarHandle has:
  * <ul>
@@ -65,13 +68,20 @@ import static java.lang.invoke.MethodHandleStatics.UNSAFE;
  * {@code CT1, CT2, ..., CTn}, the types of <em>coordinate expressions</em> that
  * jointly locate a variable referenced by this VarHandle.
  * </ul>
+ *
+ * 变量和 coordinate types 可以是 primitive 类型或者是引用类型，都用 Class 对象表示。
+ * coordinate types 列表可能为空。
  * Variable and coordinate types may be primitive or reference, and are
  * represented by {@code Class} objects.  The list of coordinate types may be
  * empty.
  *
- * <p>Factory methods that produce or {@link java.lang.invoke.MethodHandles.Lookup
+ * 工厂方法通过生成或者查询支持变量类型和共同类型列表的 VarHandle instances document
+ * <p>
+ * Factory methods that produce or {@link java.lang.invoke.MethodHandles.Lookup
  * lookup} VarHandle instances document the supported variable type and the list
  * of coordinate types.
+ *
+ * 每种访问模式与一个 access mode method 关联。在 VarHandle 实例中调用一个 access mode method，
  *
  * <p>Each access mode is associated with one <em>access mode method</em>, a
  * <a href="MethodHandle.html#sigpoly">signature polymorphic</a> method named
@@ -97,7 +107,7 @@ import static java.lang.invoke.MethodHandleStatics.UNSAFE;
  * time type of the return value, must <a href="#invoke">match</a> the types
  * given in the access mode type.  A runtime exception will be thrown if the
  * match fails.
- *
+ * <p>
  * For example, the access mode method {@link #compareAndSet} specifies that if
  * its receiver is a VarHandle instance with coordinate types
  * {@code CT1, ..., CTn} and variable type {@code T}, then its access mode type
@@ -220,7 +230,7 @@ import static java.lang.invoke.MethodHandleStatics.UNSAFE;
  * <p>In addition to supporting access to variables under various access modes,
  * a set of static methods, referred to as memory fence methods, is also
  * provided for fine-grained control of memory ordering.
- *
+ * <p>
  * The Java Language Specification permits other threads to observe operations
  * as if they were executed in orders different than are apparent in program
  * source code, subject to constraints arising, for example, from the use of
@@ -317,7 +327,7 @@ import static java.lang.invoke.MethodHandleStatics.UNSAFE;
  * target, the handle will apply reference casts as necessary and box, unbox, or
  * widen primitive values, as if by {@link MethodHandle#asType asType} (see also
  * {@link MethodHandles#varHandleInvoker}).
- *
+ * <p>
  * More concisely, such behaviour is equivalent to:
  * <pre> {@code
  * VarHandle vh = ..
@@ -472,15 +482,15 @@ public abstract class VarHandle implements Constable {
      * throws {@code UnsupportedOperationException}.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the value of the
      * variable
      * , statically represented using {@code Object}.
      * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                  match the caller's symbolic type descriptor.
+     * @throws ClassCastException       if the access mode type matches the caller's
+     *                                  symbolic type descriptor, but a reference cast fails.
      */
     public final native
     @MethodHandle.PolymorphicSignature
@@ -499,14 +509,14 @@ public abstract class VarHandle implements Constable {
      * {@code accessModeType(VarHandle.AccessMode.SET)} on this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T newValue)}
+     *             , statically represented using varargs.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      */
     public final native
     @MethodHandle.PolymorphicSignature
@@ -528,17 +538,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the value of the
      * variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      */
     public final native
     @MethodHandle.PolymorphicSignature
@@ -556,19 +566,17 @@ public abstract class VarHandle implements Constable {
      * {@code accessModeType(VarHandle.AccessMode.SET_VOLATILE)} on this
      * VarHandle.
      *
-     * @apiNote
-     * Ignoring the many semantic differences from C and C++, this method has
-     * memory ordering effects compatible with {@code memory_order_seq_cst}.
-     *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T newValue)}
+     *             , statically represented using varargs.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
+     * @apiNote Ignoring the many semantic differences from C and C++, this method has
+     * memory ordering effects compatible with {@code memory_order_seq_cst}.
      */
     public final native
     @MethodHandle.PolymorphicSignature
@@ -588,17 +596,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the value of the
      * variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      */
     public final native
     @MethodHandle.PolymorphicSignature
@@ -618,14 +626,14 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T newValue)}
+     *             , statically represented using varargs.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      */
     public final native
     @MethodHandle.PolymorphicSignature
@@ -646,23 +654,21 @@ public abstract class VarHandle implements Constable {
      * {@code accessModeType(VarHandle.AccessMode.GET_ACQUIRE)} on this
      * VarHandle.
      *
-     * @apiNote
-     * Ignoring the many semantic differences from C and C++, this method has
-     * memory ordering effects compatible with {@code memory_order_acquire}
-     * ordering.
-     *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the value of the
      * variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
+     * @apiNote Ignoring the many semantic differences from C and C++, this method has
+     * memory ordering effects compatible with {@code memory_order_acquire}
+     * ordering.
      */
     public final native
     @MethodHandle.PolymorphicSignature
@@ -680,20 +686,18 @@ public abstract class VarHandle implements Constable {
      * {@code accessModeType(VarHandle.AccessMode.SET_RELEASE)} on this
      * VarHandle.
      *
-     * @apiNote
-     * Ignoring the many semantic differences from C and C++, this method has
+     * @param args the signature-polymorphic parameter list of the form
+     *             {@code (CT1 ct1, ..., CTn ctn, T newValue)}
+     *             , statically represented using varargs.
+     * @throws UnsupportedOperationException if the access mode is unsupported
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
+     * @apiNote Ignoring the many semantic differences from C and C++, this method has
      * memory ordering effects compatible with {@code memory_order_release}
      * ordering.
-     *
-     * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T newValue)}
-     * , statically represented using varargs.
-     * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
      */
     public final native
     @MethodHandle.PolymorphicSignature
@@ -718,16 +722,16 @@ public abstract class VarHandle implements Constable {
      * this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
+     *             , statically represented using varargs.
      * @return {@code true} if successful, otherwise {@code false} if the
      * witness value was not the same as the {@code expectedValue}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -752,17 +756,17 @@ public abstract class VarHandle implements Constable {
      * on this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the witness value, which
      * will be the same as the {@code expectedValue} if successful
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type is not
-     * compatible with the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type is compatible with the
-     * caller's symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type is not
+     *                                       compatible with the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type is compatible with the
+     *                                       caller's symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -787,17 +791,17 @@ public abstract class VarHandle implements Constable {
      * this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the witness value, which
      * will be the same as the {@code expectedValue} if successful
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #set(Object...)
      * @see #getAcquire(Object...)
      */
@@ -822,17 +826,17 @@ public abstract class VarHandle implements Constable {
      * on this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the witness value, which
      * will be the same as the {@code expectedValue} if successful
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setRelease(Object...)
      * @see #get(Object...)
      */
@@ -861,17 +865,17 @@ public abstract class VarHandle implements Constable {
      * on this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
+     *             , statically represented using varargs.
      * @return {@code true} if successful, otherwise {@code false} if the
      * witness value was not the same as the {@code expectedValue} or if this
      * operation spuriously failed.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #set(Object...)
      * @see #get(Object...)
      */
@@ -898,17 +902,17 @@ public abstract class VarHandle implements Constable {
      * on this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
+     *             , statically represented using varargs.
      * @return {@code true} if successful, otherwise {@code false} if the
      * witness value was not the same as the {@code expectedValue} or if this
      * operation spuriously failed.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -936,17 +940,17 @@ public abstract class VarHandle implements Constable {
      * on this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
+     *             , statically represented using varargs.
      * @return {@code true} if successful, otherwise {@code false} if the
      * witness value was not the same as the {@code expectedValue} or if this
      * operation spuriously failed.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #set(Object...)
      * @see #getAcquire(Object...)
      */
@@ -974,17 +978,17 @@ public abstract class VarHandle implements Constable {
      * on this VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T expectedValue, T newValue)}
+     *             , statically represented using varargs.
      * @return {@code true} if successful, otherwise {@code false} if the
      * witness value was not the same as the {@code expectedValue} or if this
      * operation spuriously failed.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setRelease(Object...)
      * @see #get(Object...)
      */
@@ -1007,17 +1011,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T newValue)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1040,17 +1044,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T newValue)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1073,17 +1077,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T newValue)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T newValue)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1109,17 +1113,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T value)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T value)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1142,17 +1146,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T value)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T value)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1175,17 +1179,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T value)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T value)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1216,17 +1220,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1253,17 +1257,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #set(Object...)
      * @see #getAcquire(Object...)
      */
@@ -1290,17 +1294,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setRelease(Object...)
      * @see #get(Object...)
      */
@@ -1327,17 +1331,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1364,17 +1368,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #set(Object...)
      * @see #getAcquire(Object...)
      */
@@ -1401,17 +1405,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setRelease(Object...)
      * @see #get(Object...)
      */
@@ -1438,17 +1442,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setVolatile(Object...)
      * @see #getVolatile(Object...)
      */
@@ -1475,17 +1479,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #set(Object...)
      * @see #getAcquire(Object...)
      */
@@ -1512,17 +1516,17 @@ public abstract class VarHandle implements Constable {
      * VarHandle.
      *
      * @param args the signature-polymorphic parameter list of the form
-     * {@code (CT1 ct1, ..., CTn ctn, T mask)}
-     * , statically represented using varargs.
+     *             {@code (CT1 ct1, ..., CTn ctn, T mask)}
+     *             , statically represented using varargs.
      * @return the signature-polymorphic result that is the previous value of
      * the variable
      * , statically represented using {@code Object}.
      * @throws UnsupportedOperationException if the access mode is unsupported
-     * for this VarHandle.
-     * @throws WrongMethodTypeException if the access mode type does not
-     * match the caller's symbolic type descriptor.
-     * @throws ClassCastException if the access mode type matches the caller's
-     * symbolic type descriptor, but a reference cast fails.
+     *                                       for this VarHandle.
+     * @throws WrongMethodTypeException      if the access mode type does not
+     *                                       match the caller's symbolic type descriptor.
+     * @throws ClassCastException            if the access mode type matches the caller's
+     *                                       symbolic type descriptor, but a reference cast fails.
      * @see #setRelease(Object...)
      * @see #get(Object...)
      */
@@ -1794,11 +1798,12 @@ public abstract class VarHandle implements Constable {
         ;
 
         static final Map<String, AccessMode> methodNameToAccessMode;
+
         static {
             AccessMode[] values = AccessMode.values();
             // Initial capacity of # values divided by the load factor is sufficient
             // to avoid resizes for the smallest table size (64)
-            int initialCapacity = (int)(values.length / 0.75f) + 1;
+            int initialCapacity = (int) (values.length / 0.75f) + 1;
             methodNameToAccessMode = new HashMap<>(initialCapacity);
             for (AccessMode am : values) {
                 methodNameToAccessMode.put(am.methodName, am);
@@ -1831,9 +1836,9 @@ public abstract class VarHandle implements Constable {
          * @param methodName the signature-polymorphic method name
          * @return the {@code AccessMode} value
          * @throws IllegalArgumentException if there is no {@code AccessMode}
-         *         value associated with method name (indicating the method
-         *         name does not correspond to a {@code VarHandle}
-         *         signature-polymorphic method name).
+         *                                  value associated with method name (indicating the method
+         *                                  name does not correspond to a {@code VarHandle}
+         *                                  signature-polymorphic method name).
          * @see #methodName()
          */
         public static AccessMode valueFromMethodName(String methodName) {
@@ -1873,8 +1878,8 @@ public abstract class VarHandle implements Constable {
     @Override
     public final String toString() {
         return String.format("VarHandle[varType=%s, coord=%s]",
-                             varType().getName(),
-                             coordinateTypes());
+                varType().getName(),
+                coordinateTypes());
     }
 
     /**
@@ -1908,7 +1913,7 @@ public abstract class VarHandle implements Constable {
      * access mode method.
      *
      * @param accessMode the access mode, corresponding to the
-     * signature-polymorphic method of the same name
+     *                   signature-polymorphic method of the same name
      * @return the access mode type for the given access mode
      */
     public final MethodType accessModeType(AccessMode accessMode) {
@@ -1920,6 +1925,7 @@ public abstract class VarHandle implements Constable {
         }
         return mt;
     }
+
     abstract MethodType accessModeTypeUncached(AccessMode accessMode);
 
     /**
@@ -1931,7 +1937,7 @@ public abstract class VarHandle implements Constable {
      * of the corresponding access mode method.
      *
      * @param accessMode the access mode, corresponding to the
-     * signature-polymorphic method of the same name
+     *                   signature-polymorphic method of the same name
      * @return {@code true} if the given access mode is supported, otherwise
      * {@code false}.
      */
@@ -1943,6 +1949,9 @@ public abstract class VarHandle implements Constable {
      * Obtains a method handle bound to this VarHandle and the given access
      * mode.
      *
+     * @param accessMode the access mode, corresponding to the
+     *                   signature-polymorphic method of the same name
+     * @return a method handle bound to this VarHandle and the given access mode
      * @apiNote This method, for a VarHandle {@code vh} and access mode
      * {@code {access-mode}}, returns a method handle that is equivalent to
      * method handle {@code bmh} in the following code (though it may be more
@@ -1953,18 +1962,13 @@ public abstract class VarHandle implements Constable {
      *
      * MethodHandle bmh = mh.bindTo(vh);
      * }</pre>
-     *
-     * @param accessMode the access mode, corresponding to the
-     * signature-polymorphic method of the same name
-     * @return a method handle bound to this VarHandle and the given access mode
      */
     public final MethodHandle toMethodHandle(AccessMode accessMode) {
         MemberName mn = AccessMode.getMemberName(accessMode.ordinal(), vform);
         if (mn != null) {
             MethodHandle mh = getMethodHandle(accessMode.ordinal());
             return mh.bindTo(this);
-        }
-        else {
+        } else {
             // Ensure an UnsupportedOperationException is thrown
             return MethodHandles.varHandleInvoker(accessMode, accessModeType(accessMode)).
                     bindTo(this);
@@ -2016,6 +2020,7 @@ public abstract class VarHandle implements Constable {
         }
         return mh;
     }
+
     private final MethodHandle getMethodHandleUncached(int mode) {
         MethodType mt = accessModeType(AccessMode.values()[mode]).
                 insertParameterTypes(0, VarHandle.class);
@@ -2143,9 +2148,9 @@ public abstract class VarHandle implements Constable {
                 switch (this) {
                     case FIELD:
                     case STATIC_FIELD:
-                        return new ConstantDesc[] {declaringClass, varType };
+                        return new ConstantDesc[]{declaringClass, varType};
                     case ARRAY:
-                        return new ConstantDesc[] {declaringClass };
+                        return new ConstantDesc[]{declaringClass};
                     default:
                         throw new InternalError("Cannot reach here");
                 }
@@ -2160,18 +2165,18 @@ public abstract class VarHandle implements Constable {
          * Construct a {@linkplain VarHandleDesc} given a kind, name, and declaring
          * class.
          *
-         * @param kind the kind of the var handle
-         * @param name the unqualified name of the field, for field var handles; otherwise ignored
+         * @param kind           the kind of the var handle
+         * @param name           the unqualified name of the field, for field var handles; otherwise ignored
          * @param declaringClass a {@link ClassDesc} describing the declaring class,
          *                       for field var handles
-         * @param varType a {@link ClassDesc} describing the type of the variable
+         * @param varType        a {@link ClassDesc} describing the type of the variable
          * @throws NullPointerException if any required argument is null
          * @jvms 4.2.2 Unqualified Names
          */
         private VarHandleDesc(Kind kind, String name, ClassDesc declaringClass, ClassDesc varType) {
             super(kind.bootstrapMethod, name,
-                  ConstantDescs.CD_VarHandle,
-                  kind.toBSMArgs(declaringClass, varType));
+                    ConstantDescs.CD_VarHandle,
+                    kind.toBSMArgs(declaringClass, varType));
             this.kind = kind;
             this.declaringClass = declaringClass;
             this.varType = varType;
@@ -2181,10 +2186,10 @@ public abstract class VarHandle implements Constable {
          * Returns a {@linkplain VarHandleDesc} corresponding to a {@link VarHandle}
          * for an instance field.
          *
-         * @param name the unqualifed name of the field
+         * @param name           the unqualifed name of the field
          * @param declaringClass a {@link ClassDesc} describing the declaring class,
          *                       for field var handles
-         * @param fieldType a {@link ClassDesc} describing the type of the field
+         * @param fieldType      a {@link ClassDesc} describing the type of the field
          * @return the {@linkplain VarHandleDesc}
          * @throws NullPointerException if any of the arguments are null
          * @jvms 4.2.2 Unqualified Names
@@ -2200,10 +2205,10 @@ public abstract class VarHandle implements Constable {
          * Returns a {@linkplain VarHandleDesc} corresponding to a {@link VarHandle}
          * for a static field.
          *
-         * @param name the unqualified name of the field
+         * @param name           the unqualified name of the field
          * @param declaringClass a {@link ClassDesc} describing the declaring class,
          *                       for field var handles
-         * @param fieldType a {@link ClassDesc} describing the type of the field
+         * @param fieldType      a {@link ClassDesc} describing the type of the field
          * @return the {@linkplain VarHandleDesc}
          * @throws NullPointerException if any of the arguments are null
          * @jvms 4.2.2 Unqualified Names
@@ -2246,12 +2251,12 @@ public abstract class VarHandle implements Constable {
             switch (kind) {
                 case FIELD:
                     return lookup.findVarHandle((Class<?>) declaringClass.resolveConstantDesc(lookup),
-                                                constantName(),
-                                                (Class<?>) varType.resolveConstantDesc(lookup));
+                            constantName(),
+                            (Class<?>) varType.resolveConstantDesc(lookup));
                 case STATIC_FIELD:
                     return lookup.findStaticVarHandle((Class<?>) declaringClass.resolveConstantDesc(lookup),
-                                                      constantName(),
-                                                      (Class<?>) varType.resolveConstantDesc(lookup));
+                            constantName(),
+                            (Class<?>) varType.resolveConstantDesc(lookup));
                 case ARRAY:
                     return MethodHandles.arrayElementVarHandle((Class<?>) declaringClass.resolveConstantDesc(lookup));
                 default:
@@ -2273,8 +2278,8 @@ public abstract class VarHandle implements Constable {
                 case FIELD:
                 case STATIC_FIELD:
                     return String.format("VarHandleDesc[%s%s.%s:%s]",
-                                         (kind == Kind.STATIC_FIELD) ? "static " : "",
-                                         declaringClass.displayName(), constantName(), varType.displayName());
+                            (kind == Kind.STATIC_FIELD) ? "static " : "",
+                            declaringClass.displayName(), constantName(), varType.displayName());
                 case ARRAY:
                     return String.format("VarHandleDesc[%s[]]", declaringClass.displayName());
                 default:

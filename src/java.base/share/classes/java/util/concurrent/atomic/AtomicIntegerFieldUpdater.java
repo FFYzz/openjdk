@@ -70,6 +70,9 @@ import java.lang.invoke.VarHandle;
  * @author Doug Lea
  * @param <T> The type of the object holding the updatable field
  */
+/**
+ * 是一个抽象类
+ */
 public abstract class AtomicIntegerFieldUpdater<T> {
     /**
      * Creates and returns an updater for objects with the given field.

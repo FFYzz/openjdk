@@ -47,6 +47,11 @@ import java.util.function.LongUnaryOperator;
  * @since 1.5
  * @author Doug Lea
  */
+
+/**
+ * 类似于 AtomicIntegerArray
+ * 基本上方法的实现都委托给了 VarHandle，所以实现原理还是得看 VarHandle 的实现。
+ */
 public class AtomicLongArray implements java.io.Serializable {
     private static final long serialVersionUID = -2308431214976778248L;
     private static final VarHandle AA

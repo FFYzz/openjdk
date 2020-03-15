@@ -103,6 +103,12 @@ public class LongAccumulator extends Striped64 implements Serializable {
      * @param x the value
      */
     public void accumulate(long x) {
+        // cs cells 表
+        // b base 的值
+        // v 当前线程对应的 Cell 上的 value
+        // r function 计算之后的值
+        // m cells 表的长度 - 1
+        // c 当前线程计算出来的 hash 值对应到 cells 表中的 Cell
         Cell[] cs; long b, v, r; int m; Cell c;
         if ((cs = cells) != null
             || ((r = function.applyAsLong(b = base, x)) != b

@@ -52,6 +52,10 @@ import jdk.internal.misc.Unsafe;
  * @since 1.5
  * @author Doug Lea
  */
+
+/**
+ * 基本上方法的实现都委托给了 Unsafe，所以实现原理还是得看 Unsafe 的实现。
+ */
 public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 6214790243416807050L;
 
@@ -59,7 +63,13 @@ public class AtomicInteger extends Number implements java.io.Serializable {
      * This class intended to be implemented using VarHandles, but there
      * are unresolved cyclic startup dependencies.
      */
+    /**
+     * Unsafe 实例
+     */
     private static final Unsafe U = Unsafe.getUnsafe();
+    /**
+     * 获取 value 属性的偏移量
+     */
     private static final long VALUE
         = U.objectFieldOffset(AtomicInteger.class, "value");
 

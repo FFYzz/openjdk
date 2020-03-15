@@ -44,13 +44,27 @@ import java.util.function.UnaryOperator;
  * An object reference that may be updated atomically.  See the {@link
  * VarHandle} specification for descriptions of the properties of
  * atomic accesses.
- * @since 1.5
- * @author Doug Lea
+ *
  * @param <V> The type of object referred to by this reference
+ * @author Doug Lea
+ * @since 1.5
+ */
+
+/**
+ * 方法实现一般都委托给了 VarHandle，所以具体需要分析 VarHandle。
+ *
+ * @param <V>
  */
 public class AtomicReference<V> implements java.io.Serializable {
     private static final long serialVersionUID = -1848883965231344442L;
+    /**
+     * VarHandle 实例
+     */
     private static final VarHandle VALUE;
+
+    /**
+     * 获取 VarHandle 实例
+     */
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
@@ -114,7 +128,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * with memory effects as specified by {@link VarHandle#compareAndSet}.
      *
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
@@ -127,18 +141,17 @@ public class AtomicReference<V> implements java.io.Serializable {
      * if the current value {@code == expectedValue},
      * with memory effects as specified by {@link VarHandle#weakCompareAndSetPlain}.
      *
+     * @param expectedValue the expected value
+     * @param newValue      the new value
+     * @return {@code true} if successful
+     * @see #weakCompareAndSetPlain
      * @deprecated This method has plain memory effects but the method
      * name implies volatile memory effects (see methods such as
      * {@link #compareAndExchange} and {@link #compareAndSet}).  To avoid
      * confusion over plain or volatile memory effects it is recommended that
      * the method {@link #weakCompareAndSetPlain} be used instead.
-     *
-     * @param expectedValue the expected value
-     * @param newValue the new value
-     * @return {@code true} if successful
-     * @see #weakCompareAndSetPlain
      */
-    @Deprecated(since="9")
+    @Deprecated(since = "9")
     public final boolean weakCompareAndSet(V expectedValue, V newValue) {
         return VALUE.weakCompareAndSetPlain(this, expectedValue, newValue);
     }
@@ -149,7 +162,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * with memory effects as specified by {@link VarHandle#weakCompareAndSetPlain}.
      *
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful
      * @since 9
      */
@@ -166,7 +179,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      */
     @SuppressWarnings("unchecked")
     public final V getAndSet(V newValue) {
-        return (V)VALUE.getAndSet(this, newValue);
+        return (V) VALUE.getAndSet(this, newValue);
     }
 
     /**
@@ -182,7 +195,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      */
     public final V getAndUpdate(UnaryOperator<V> updateFunction) {
         V prev = get(), next = null;
-        for (boolean haveNext = false;;) {
+        for (boolean haveNext = false; ; ) {
             if (!haveNext)
                 next = updateFunction.apply(prev);
             if (weakCompareAndSetVolatile(prev, next))
@@ -204,7 +217,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      */
     public final V updateAndGet(UnaryOperator<V> updateFunction) {
         V prev = get(), next = null;
-        for (boolean haveNext = false;;) {
+        for (boolean haveNext = false; ; ) {
             if (!haveNext)
                 next = updateFunction.apply(prev);
             if (weakCompareAndSetVolatile(prev, next))
@@ -223,7 +236,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * applied with the current value as its first argument, and the
      * given update as the second argument.
      *
-     * @param x the update value
+     * @param x                   the update value
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the previous value
      * @since 1.8
@@ -231,7 +244,7 @@ public class AtomicReference<V> implements java.io.Serializable {
     public final V getAndAccumulate(V x,
                                     BinaryOperator<V> accumulatorFunction) {
         V prev = get(), next = null;
-        for (boolean haveNext = false;;) {
+        for (boolean haveNext = false; ; ) {
             if (!haveNext)
                 next = accumulatorFunction.apply(prev, x);
             if (weakCompareAndSetVolatile(prev, next))
@@ -250,7 +263,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * applied with the current value as its first argument, and the
      * given update as the second argument.
      *
-     * @param x the update value
+     * @param x                   the update value
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the updated value
      * @since 1.8
@@ -258,7 +271,7 @@ public class AtomicReference<V> implements java.io.Serializable {
     public final V accumulateAndGet(V x,
                                     BinaryOperator<V> accumulatorFunction) {
         V prev = get(), next = null;
-        for (boolean haveNext = false;;) {
+        for (boolean haveNext = false; ; ) {
             if (!haveNext)
                 next = accumulatorFunction.apply(prev, x);
             if (weakCompareAndSetVolatile(prev, next))
@@ -269,6 +282,7 @@ public class AtomicReference<V> implements java.io.Serializable {
 
     /**
      * Returns the String representation of the current value.
+     *
      * @return the String representation of the current value
      */
     public String toString() {
@@ -285,7 +299,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 9
      */
     public final V getPlain() {
-        return (V)VALUE.get(this);
+        return (V) VALUE.get(this);
     }
 
     /**
@@ -308,7 +322,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 9
      */
     public final V getOpaque() {
-        return (V)VALUE.getOpaque(this);
+        return (V) VALUE.getOpaque(this);
     }
 
     /**
@@ -330,7 +344,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 9
      */
     public final V getAcquire() {
-        return (V)VALUE.getAcquire(this);
+        return (V) VALUE.getAcquire(this);
     }
 
     /**
@@ -351,13 +365,13 @@ public class AtomicReference<V> implements java.io.Serializable {
      * {@link VarHandle#compareAndExchange}.
      *
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return the witness value, which will be the same as the
      * expected value if successful
      * @since 9
      */
     public final V compareAndExchange(V expectedValue, V newValue) {
-        return (V)VALUE.compareAndExchange(this, expectedValue, newValue);
+        return (V) VALUE.compareAndExchange(this, expectedValue, newValue);
     }
 
     /**
@@ -367,13 +381,13 @@ public class AtomicReference<V> implements java.io.Serializable {
      * {@link VarHandle#compareAndExchangeAcquire}.
      *
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return the witness value, which will be the same as the
      * expected value if successful
      * @since 9
      */
     public final V compareAndExchangeAcquire(V expectedValue, V newValue) {
-        return (V)VALUE.compareAndExchangeAcquire(this, expectedValue, newValue);
+        return (V) VALUE.compareAndExchangeAcquire(this, expectedValue, newValue);
     }
 
     /**
@@ -383,13 +397,13 @@ public class AtomicReference<V> implements java.io.Serializable {
      * {@link VarHandle#compareAndExchangeRelease}.
      *
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return the witness value, which will be the same as the
      * expected value if successful
      * @since 9
      */
     public final V compareAndExchangeRelease(V expectedValue, V newValue) {
-        return (V)VALUE.compareAndExchangeRelease(this, expectedValue, newValue);
+        return (V) VALUE.compareAndExchangeRelease(this, expectedValue, newValue);
     }
 
     /**
@@ -399,7 +413,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * {@link VarHandle#weakCompareAndSet}.
      *
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful
      * @since 9
      */
@@ -414,7 +428,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * {@link VarHandle#weakCompareAndSetAcquire}.
      *
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful
      * @since 9
      */
@@ -429,7 +443,7 @@ public class AtomicReference<V> implements java.io.Serializable {
      * {@link VarHandle#weakCompareAndSetRelease}.
      *
      * @param expectedValue the expected value
-     * @param newValue the new value
+     * @param newValue      the new value
      * @return {@code true} if successful
      * @since 9
      */

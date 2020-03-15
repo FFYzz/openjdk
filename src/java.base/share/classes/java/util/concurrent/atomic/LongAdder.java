@@ -68,6 +68,10 @@ import java.io.Serializable;
  * @author Doug Lea
  * @since 1.8
  */
+
+/**
+ * 可序列化
+ */
 public class LongAdder extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
 

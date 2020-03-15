@@ -47,6 +47,10 @@ import java.util.function.LongBinaryOperator;
  * for classes supporting dynamic striping on 64bit values. The class
  * extends Number so that concrete subclasses must publicly do so.
  */
+
+/**
+ * 64bit 的值 double / Long
+ */
 @SuppressWarnings("serial")
 abstract class Striped64 extends Number {
     /*
@@ -164,8 +168,14 @@ abstract class Striped64 extends Number {
         }
 
         // VarHandle mechanics
+        /**
+         * VarHandle 实例
+         */
         private static final VarHandle VALUE;
 
+        /**
+         * 初始化 VarHandle 实例
+         */
         static {
             try {
                 MethodHandles.Lookup l = MethodHandles.lookup();
@@ -212,18 +222,30 @@ abstract class Striped64 extends Number {
     Striped64() {
     }
 
+    //  cas 操作
+
     /**
      * CASes the base field.
+     * <p>
+     * cas 更新当前的计数值 base
      */
     final boolean casBase(long cmp, long val) {
         return BASE.compareAndSet(this, cmp, val);
     }
 
+    /**
+     * 更新当前的计数值并返回旧值
+     *
+     * @param val
+     * @return
+     */
     final long getAndSetBase(long val) {
         return (long) BASE.getAndSet(this, val);
     }
 
     /**
+     * 获取锁，如果成功设置为1，则表示获取到锁
+     * <p>
      * CASes the cellsBusy field from 0 to 1 to acquire lock.
      */
     final boolean casCellsBusy() {
@@ -231,6 +253,9 @@ abstract class Striped64 extends Number {
     }
 
     /**
+     * 或得到当前线程的探测值
+     * 会返回当前线程的 threadLocalRandomProbe 变量的值
+     * <p>
      * Returns the probe value for the current thread.
      * Duplicated from ThreadLocalRandom because of packaging restrictions.
      */
@@ -239,6 +264,8 @@ abstract class Striped64 extends Number {
     }
 
     /**
+     * 计算当前线程的随机探测值并设置到当前线程中。
+     * <p>
      * Pseudo-randomly advances and records the given probe value for the
      * given thread.
      * Duplicated from ThreadLocalRandom because of packaging restrictions.
@@ -299,7 +326,7 @@ abstract class Striped64 extends Number {
                                 Cell[] rs;
                                 int m, j;
                                 // 重新获取 cells ，并找到当前线程 hash 到 cells 数组中的位置
-                                // 这里一定要重新获取 cells ，因为 as 并不在锁定范围内
+                                // 这里一定要重新获取 cells ，因为 cs 并不在锁定范围内
                                 // 有可能已经扩容了，这里要重新获取
                                 if ((rs = cells) != null &&
                                         (m = rs.length) > 0 &&
@@ -465,10 +492,16 @@ abstract class Striped64 extends Number {
     }
 
     // VarHandle mechanics
+    /**
+     * VarHandle 实例
+     */
     private static final VarHandle BASE;
     private static final VarHandle CELLSBUSY;
     private static final VarHandle THREAD_PROBE;
 
+    /**
+     * 初始化 VarHandle 实例
+     */
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();

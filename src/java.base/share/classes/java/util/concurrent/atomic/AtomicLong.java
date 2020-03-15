@@ -35,22 +35,30 @@
 
 package java.util.concurrent.atomic;
 
+import jdk.internal.misc.Unsafe;
+
 import java.lang.invoke.VarHandle;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongUnaryOperator;
-import jdk.internal.misc.Unsafe;
 
 /**
  * A {@code long} value that may be updated atomically.  See the
  * {@link VarHandle} specification for descriptions of the properties
- * of atomic accesses. An {@code AtomicLong} is used in applications
+ * of atomic accesses.
+ * AtomicLong 的应用场景以及使用时的注意事项：
+ * An {@code AtomicLong} is used in applications
  * such as atomically incremented sequence numbers, and cannot be used
- * as a replacement for a {@link java.lang.Long}. However, this class
+ * as a replacement for a {@link java.lang.Long}.
+ * However, this class
  * does extend {@code Number} to allow uniform access by tools and
  * utilities that deal with numerically-based classes.
  *
  * @author Doug Lea
  * @since 1.5
+ */
+
+/**
+ * 这个类中的方法基本都委托给了 Unsafe 来操作，所以具体原理的分析留到 Unsafe 类。
  */
 public class AtomicLong extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 1927816293512124184L;
@@ -77,19 +85,13 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * This class intended to be implemented using VarHandles, but there
      * are unresolved cyclic startup dependencies.
      * <p>
-     * Unsafe 的实例
+     * 获得 Unsafe 的实例
      */
-<<<<<<< HEAD
-    private static final Unsafe U = Unsafe.getUnsafe();
-    private static final long VALUE
-        = U.objectFieldOffset(AtomicLong.class, "value");
-=======
     private static final jdk.internal.misc.Unsafe U = jdk.internal.misc.Unsafe.getUnsafe();
     /**
-     * 记录 value 字段的偏移量
+     * 记录 AtomicLong 类中 value 字段的偏移量
      */
     private static final long VALUE = U.objectFieldOffset(AtomicLong.class, "value");
->>>>>>> b9463306f2... tmp
 
     /**
      * 当前的值
@@ -145,6 +147,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * with memory effects as specified by {@link VarHandle#setRelease}.
      * <p>
      * 设置当前的值为一个新值，委托给 U 来设置，是一个 lazy 方法
+     * 表示修改之后不会马上被其他线程可见，但是最终会被其他线程可见，
+     * 有点类似于不加 Volatile
      *
      * @param newValue the new value
      * @since 1.6
@@ -424,12 +428,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * Returns the current value of this {@code AtomicLong} as an {@code int}
      * after a narrowing primitive conversion,
      * with memory effects as specified by {@link VarHandle#getVolatile}.
-<<<<<<< HEAD
-     * @jls 5.1.3 Narrowing Primitive Conversion
-=======
      *
-     * @jls 5.1.3 Narrowing Primitive Conversions
->>>>>>> b9463306f2... tmp
+     * @jls 5.1.3 Narrowing Primitive Conversion
      */
     public int intValue() {
         return (int) get();
@@ -448,12 +448,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * Returns the current value of this {@code AtomicLong} as a {@code float}
      * after a widening primitive conversion,
      * with memory effects as specified by {@link VarHandle#getVolatile}.
-<<<<<<< HEAD
-     * @jls 5.1.2 Widening Primitive Conversion
-=======
      *
-     * @jls 5.1.2 Widening Primitive Conversions
->>>>>>> b9463306f2... tmp
+     * @jls 5.1.2 Widening Primitive Conversion
      */
     public float floatValue() {
         return (float) get();
@@ -463,12 +459,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * Returns the current value of this {@code AtomicLong} as a {@code double}
      * after a widening primitive conversion,
      * with memory effects as specified by {@link VarHandle#getVolatile}.
-<<<<<<< HEAD
-     * @jls 5.1.2 Widening Primitive Conversion
-=======
      *
-     * @jls 5.1.2 Widening Primitive Conversions
->>>>>>> b9463306f2... tmp
+     * @jls 5.1.2 Widening Primitive Conversion
      */
     public double doubleValue() {
         return (double) get();
@@ -578,7 +570,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * referred to as the <em>witness value</em>, {@code == expectedValue},
      * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeAcquire}.
-     *
+     * <p>
      * 通过 VarHandle#compareAndExchangeAcquire 设置值
      *
      * @param expectedValue the expected value
@@ -596,7 +588,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * referred to as the <em>witness value</em>, {@code == expectedValue},
      * with memory effects as specified by
      * {@link VarHandle#compareAndExchangeRelease}.
-     *
+     * <p>
      * 通过 VarHandle#compareAndExchangeRelease 设置值
      *
      * @param expectedValue the expected value
@@ -614,7 +606,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * if the current value {@code == expectedValue},
      * with memory effects as specified by
      * {@link VarHandle#weakCompareAndSet}.
-     *
+     * <p>
      * 通过 VarHandle#weakCompareAndSet 设置值
      *
      * @param expectedValue the expected value
@@ -631,7 +623,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * if the current value {@code == expectedValue},
      * with memory effects as specified by
      * {@link VarHandle#weakCompareAndSetAcquire}.
-     *
+     * <p>
      * 通过 VarHandle#weakCompareAndSetAcquire 设置值
      *
      * @param expectedValue the expected value
@@ -648,7 +640,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * if the current value {@code == expectedValue},
      * with memory effects as specified by
      * {@link VarHandle#weakCompareAndSetRelease}.
-     *
+     * <p>
      * 通过 VarHandle#weakCompareAndSetRelease 设置值
      *
      * @param expectedValue the expected value
